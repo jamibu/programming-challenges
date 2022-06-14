@@ -2,96 +2,161 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strconv"
 	"strings"
 )
 
 func main() {
+	game := NewGame(0, 99)
 
-	input := []string{
-		"37 72 60 35 89",
-		"32 49  4 77 82",
-		"30 26 27 63 88",
-		"29 43 16 34 58",
-		"48 33 96 79 94",
-		"/n",
-		"41 94 77 43 87",
-		"2 17 82 96 25",
-		"95 49 32 12  9",
-		"59 33 67 71 64",
-		"88 54 93 85 30",
+	nums, boardStrings := ReadInput("inputs.txt")
+
+	for boardNum, boardString := range boardStrings {
+		game.AddBoard(boardString, boardNum)
 	}
 
-	boardNum := 0
-	board := BingoBoard{}
-	var boards []BingoBoard
-	var rowNum int
-	numbers := make(map[int][]Number)
-
-	for _, line := range input {
-
-		if line == "/n" {
-			rowNum = 0
-			boardNum += 1
-			boards = append(boards, board)
-			board = NewBoard()
-		}
-
-		for c, n := range strings.Fields(line) {
-			fmt.Println(c)
-			fmt.Println(rowNum)
-			num, _ := strconv.Atoi(n)
-			board.addNumber(rowNum, c, num)
-
-			if _, ok := numbers[num]; !ok {
-				numbers[num] = []Number{}
-			}
-
-			numbers[num] = append(numbers[num], Number{num, boardNum, rowNum, c})
-		}
-		rowNum++
+	for _, num := range nums {
+		game.DrawNumber(num)
 	}
 
-	boards[0].display()
+	bestBoardNum := &game.finished[0]
+	worstBoardNum := &game.finished[len(game.finished)-1]
+
+	fmt.Println("Best board: ")
+	winningBoard := game.boards[*bestBoardNum]
+	winningBoard.display()
+
+	fmt.Println("The winning number was ", winningBoard.lastNumber)
+	fmt.Println("Remaining numbers add to: ", winningBoard.remainingSum)
+
+	answer1 := (winningBoard.remainingSum * winningBoard.lastNumber)
+	fmt.Println("Answer = ", answer1)
+
+	fmt.Println("Best board: ")
+	losingBoard := game.boards[*worstBoardNum]
+	losingBoard.display()
+
+	fmt.Println("The winning number was ", losingBoard.lastNumber)
+	fmt.Println("Remaining numbers add to: ", losingBoard.remainingSum)
+
+	answer2 := (losingBoard.remainingSum * losingBoard.lastNumber)
+	fmt.Println("Answer = ", answer2)
+
 }
 
-type Number struct {
-	value int
+func ReadInput(fname string) ([]int, []string) {
+	content, _ := ioutil.ReadFile(fname)
+
+	text := string(content)
+
+	splitStrings := strings.Split(text, "\n\n")
+	numberLine := splitStrings[0]
+	boards := splitStrings[1:]
+
+	numStrings := strings.Split(numberLine, ",")
+
+	var nums []int
+	for _, n := range numStrings {
+		num, _ := strconv.Atoi(n)
+		nums = append(nums, num)
+	}
+
+	return nums, boards
+}
+
+type NumberCoord struct {
 	board int
 	row   int
 	col   int
 }
 
-// Individual board
 type BingoBoard struct {
-	board  [5][5]int
-	rowSum [5]int
-	colSum [5]int
+	board        [5][5]int
+	remainingSum int
+	rowScore     [5]int
+	colScore     [5]int
+	hasWon       bool
+	lastNumber   int
 }
 
-func NewBoard() BingoBoard {
-	return BingoBoard{
-		board:  [5][5]int{},
-		rowSum: [5]int{},
-		colSum: [5]int{},
+type BingoGame struct {
+	boards    []*BingoBoard
+	numCoords map[int][]NumberCoord
+	finished  []int
+}
+
+func NewGame(start int, end int) BingoGame {
+	boards := []*BingoBoard{}
+	numCoords := map[int][]NumberCoord{}
+	finished := []int{}
+
+	for num := 0; num <= 99; num++ {
+		numCoords[num] = []NumberCoord{}
+	}
+
+	return BingoGame{boards: boards, numCoords: numCoords, finished: finished}
+}
+
+func (g *BingoGame) AddBoard(boardString string, boardNum int) {
+	var boardArray [5][5]int
+	var boardSum int
+	rows := strings.Split(boardString, "\n")
+
+	for r, rowString := range rows {
+		numberStrings := strings.Fields(rowString)
+
+		for c, numString := range numberStrings {
+			num, _ := strconv.Atoi(numString)
+			boardArray[r][c] = num
+			boardSum += num
+
+			g.numCoords[num] = append(g.numCoords[num], NumberCoord{boardNum, r, c})
+		}
+	}
+
+	board := &BingoBoard{
+		board:        boardArray,
+		remainingSum: boardSum,
+		rowScore:     [...]int{0, 0, 0, 0, 0},
+		colScore:     [...]int{0, 0, 0, 0, 0},
+	}
+
+	g.boards = append(g.boards, board)
+}
+
+func (g *BingoGame) DrawNumber(num int) {
+	winner := false
+	for _, coord := range g.numCoords[num] {
+		if g.boards[coord.board].hasWon {
+			continue
+		}
+
+		winner = g.boards[coord.board].MarkNumber(coord.row, coord.col, num)
+
+		if winner {
+			g.finished = append(g.finished, coord.board)
+		}
 	}
 }
 
-// Add number to a postion on the board
-func (b *BingoBoard) addNumber(row int, col int, number int) {
-	b.board[row][col] = number
-	b.rowSum[row] += number
-	b.colSum[row] += number
-}
-
-// Mark number as being called
-func (b *BingoBoard) markNumber(row int, col int, number int) {
+func (b *BingoBoard) MarkNumber(row int, col int, num int) bool {
 	b.board[row][col] = -1
-	b.rowSum[row] -= number + 1
-	b.colSum[col] -= number + 1
+	b.remainingSum -= num
+	b.rowScore[row] += 1
+	b.colScore[col] += 1
+
+	for i := 0; i < 5; i++ {
+		if b.rowScore[i] == 5 || b.colScore[i] == 5 {
+			b.hasWon = true
+			b.lastNumber = num
+			break
+		}
+	}
+
+	return b.hasWon
 }
 
-// Display a board
 func (b BingoBoard) display() {
 	for _, row := range b.board {
 		fmt.Println(row)
