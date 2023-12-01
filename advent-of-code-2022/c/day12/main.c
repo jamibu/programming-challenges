@@ -5,7 +5,7 @@
 
 
 #define ROWS 41
-#define COLS 183
+#define COLS 69
 #define filename "puzzleInput.txt"
 
 // #define ROWS 5
