@@ -7,22 +7,16 @@ const NUMS: [&str; 20] = [
 ];
 
 fn main() {
-    solve1("puzzleInput.txt");
-    solve2("puzzleInput.txt");
-}
+    let fname = "puzzleInput.txt";
 
-fn solve1(fname: &str) {
     let file = File::open(fname).expect("Could not open file");
     let lines = io::BufReader::new(file).lines();
-    let total_part1 = lines.fold(0u32, |a, x| a + part1(x.unwrap()));
-    println!("Part 1: {}", total_part1);
-}
 
-fn solve2(fname: &str) {
-    let file = File::open(fname).expect("Could not open file");
-    let lines = io::BufReader::new(file).lines();
+    // let total_part1 = lines.fold(0u32, |a, x| a + part1(x.unwrap()));
+    // println!("{}", total_part1);
+
     let total_part2 = lines.fold(0u32, |a, x| a + part2(x.unwrap()));
-    println!("Part 2: {}", total_part2);
+    println!("{}", total_part2);
 }
 
 fn part1(line: String) -> u32 {
