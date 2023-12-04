@@ -39,10 +39,18 @@ impl Grid {
         return surrounding
     }
 
-    fn
+    fn is_symbol(&self, x: usize, y: usize) -> bool {
+        return !(self.grid[y][x].is_numeric() || self.grid[y][x] == '.')
+    }
 
     fn within_grid(&self, x: isize, y: isize) -> bool {
         return x > 0 && x < self.cols as isize && y > 0 && y < self.rows as isize;
+    }
+
+    fn visit_number(&mut self, x: usize, y: usize) {
+        let mut i = x;
+        let mut j = x;
+        while
     }
 }
 
@@ -52,11 +60,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Parsing the string at once since we'll need to search around in a grid
     let grid = Grid::from_string(input_str);
 
-    for (i, row) in grid.grid.iter().enumerate() {
-        for (j, point) in row.iter().enumerate() {
-            if point.is_numeric() || *point == '.' {
+    for y in 0..grid.rows {
+        for x in 0..grid.cols {
+            if !grid.is_symbol(x, y) {
                 continue;
             }
+            
+            let surrounding = grid.get_surrounding(x as isize, y as isize);
         }
     }
 
