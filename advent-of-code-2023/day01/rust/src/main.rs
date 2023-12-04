@@ -7,7 +7,7 @@ const NUMS: [&str; 20] = [
 ];
 
 fn main() {
-    let fname = "puzzleInput.txt";
+    let fname = "../puzzleInput.txt";
 
     let file = File::open(fname).expect("Could not open file");
     let lines = io::BufReader::new(file).lines();
