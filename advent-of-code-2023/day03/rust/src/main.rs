@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::error::Error;
 use std::fs;
 
 struct EngineSchematic {
@@ -38,16 +37,16 @@ impl EngineSchematic {
     }
 }
 
-#[derive(Debug, Eq, Hash, PartialEq)]
+#[derive(Eq, Hash, PartialEq)]
 struct Symbol {
     character: char,
     x: usize,
     y: usize,
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
+fn main() {
     let fname = "../puzzleInput.txt";
-    let input_str: String = fs::read_to_string(fname)?;
+    let input_str: String = fs::read_to_string(fname).expect("Could not open file");
     let engine = EngineSchematic::from_string(input_str);
     let mut symbol_hash: HashMap<Symbol, Vec<u32>> = HashMap::new();
 
@@ -55,22 +54,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     for y in 0..engine.rows {
         let mut x = 0;
         while x < engine.cols {
-            // Finding symbols instead of numbers
             if !engine.grid[y][x].is_numeric() {
                 x += 1;
                 continue;
             }
 
-            // Need to Add x as position is relative to current x position
-            let last = engine.grid[y][x..engine.cols]
-                .into_iter()
-                .position(|x| !x.is_numeric());
-
-            let end_x = match last {
-                Some(val) => x + val,
-                None => engine.cols,
-            };
-
+            let end_x = find_number_end(&engine, x, y);
             let number: u32 = engine.grid[y][x..end_x]
                 .iter()
                 .collect::<String>()
@@ -96,17 +85,15 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     println!("Part 1: {}", part1);
     println!("Part 2: {}", part2);
-
-    Ok(())
 }
 
 fn find_symbols(engine: &EngineSchematic, first_x: isize, last_x: isize, y: isize) -> Vec<Symbol> {
     let start_x = first_x - 1;
     let end_x = last_x + 1;
     let surrounding_coords: Vec<Symbol> = (start_x..end_x)
-        .map(|x| (x, y - 1))
-        .chain([start_x, end_x - 1].into_iter().map(|x| (x, y)))
-        .chain((start_x..end_x).map(|x| (x, y + 1)))
+        .map(|x| (x, y - 1)) // Above number
+        .chain([start_x, end_x - 1].into_iter().map(|x| (x, y))) // Either side of number
+        .chain((start_x..end_x).map(|x| (x, y + 1))) // Below number
         .filter(|(x, y)| engine.within_grid(*x, *y))
         .filter(|(x, y)| engine.is_symbol(*x as usize, *y as usize))
         .map(|(x, y)| engine.get_symbol(x as usize, y as usize))
@@ -120,7 +107,19 @@ fn update_symbols(hash: &mut HashMap<Symbol, Vec<u32>>, symbols: Vec<Symbol>, nu
         if symbol.character != '*' {
             continue;
         }
-
         hash.entry(symbol).or_insert(Vec::new()).push(number);
     }
+}
+
+fn find_number_end(engine: &EngineSchematic, x: usize, y: usize) -> usize {
+    // Determine coord of number end
+    let last = engine.grid[y][x..engine.cols]
+        .into_iter()
+        .position(|x| !x.is_numeric());
+
+    // val is relative to current x position, want to relative to start
+    return match last {
+        Some(val) => x + val,
+        None => engine.cols,
+    };
 }
