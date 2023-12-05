@@ -58,15 +58,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         .min()
         .unwrap();
 
-    let part2 = almanac
+    let seed_ranges: Vec<(&isize, &isize)> = almanac
         .seeds
         .iter()
         .zip(almanac.seeds.iter().skip(1))
-        .map(|(x, n)| (*x..=(*x + *n)).collect::<Vec<isize>>())
-        .flatten()
-        .map(|x| find_location(&almanac, x))
-        .min()
-        .unwrap();
+        .collect();
 
     println!("Part 1: {}", part1);
     println!("Part 2: {}", part2);
