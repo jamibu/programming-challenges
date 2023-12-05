@@ -2,19 +2,29 @@ use std::collections::HashSet;
 use std::fs::File;
 use std::io::{self, BufRead};
 
+const NUM_CARDS: usize = 209;
+
 fn main() {
     let fname = "../puzzleInput.txt";
     let file = File::open(fname).expect("Could not open file");
     let lines = io::BufReader::new(file).lines();
-    let matches: Vec<usize> = lines.map(|x| parse_card(x.unwrap())).collect();
 
-    let part_1: u32 = matches
-        .iter()
-        .filter(|x| **x > 0)
-        .fold(0u32, |a, x| a + 2u32.pow(*x as u32 - 1));
+    let mut part1 = 0;
+    let mut part2 = 0;
+    let mut cards: [usize; NUM_CARDS] = [1; NUM_CARDS];
+    for (i, line) in lines.enumerate() {
+        println!("{:?}", line);
+        let wins: usize = parse_card(line.unwrap());
+        println!("{}", wins);
+        if wins > 0 {
+            part1 += 2u32.pow(wins as u32 - 1)
+        }
 
-    println!("Part 1: {}", part_1);
-    println!("Part 2: {}", part2(&matches));
+        part2 += process_card(&mut cards, wins, i);
+    }
+
+    println!("Part 1: {}", part1);
+    println!("Part 2: {}", part2);
 }
 
 fn parse_card(line: String) -> usize {
@@ -30,15 +40,10 @@ fn parse_card(line: String) -> usize {
         .count();
 }
 
-fn part2(matches: &Vec<usize>) -> usize {
-    let mut cards: Vec<usize> = vec![1; matches.len()];
-
-    for (i, num_wins) in matches.iter().enumerate() {
-        let num_cards = cards[i];
-        for j in (i + 1)..=(i + num_wins) {
-            cards[j] += num_cards
-        }
+fn process_card(cards: &mut [usize; NUM_CARDS], wins: usize, idx: usize) -> usize {
+    println!("{} {}", idx, wins);
+    for j in (idx + 1)..=(idx + wins) {
+        cards[j] += cards[idx]
     }
-
-    return cards.iter().sum();
+    return cards[idx];
 }
