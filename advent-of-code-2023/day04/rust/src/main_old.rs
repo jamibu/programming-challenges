@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashSet, VecDeque};
 use std::fs::File;
 use std::io::{self, BufRead};
 
@@ -12,7 +12,6 @@ fn main() {
         .iter()
         .filter(|x| **x > 0)
         .fold(0u32, |a, x| a + 2u32.pow(*x as u32 - 1));
-
     println!("Part 1: {}", part_1);
     println!("Part 2: {}", part2(&matches));
 }
@@ -31,14 +30,15 @@ fn parse_card(line: String) -> usize {
 }
 
 fn part2(matches: &Vec<usize>) -> usize {
-    let mut cards: Vec<usize> = vec![1; matches.len()];
-
-    for (i, num_wins) in matches.iter().enumerate() {
-        let num_cards = cards[i];
-        for j in (i + 1)..=(i + num_wins) {
-            cards[j] += num_cards
+    let mut cards: VecDeque<usize> = VecDeque::from((0..matches.len()).collect::<Vec<usize>>());
+    let mut total_cards: usize = 0;
+    while !cards.is_empty() {
+        let card_idx = cards.pop_front().unwrap();
+        for idx in 1..=matches[card_idx] {
+            cards.push_back(card_idx + idx)
         }
+        total_cards += 1
     }
 
-    return cards.iter().sum();
+    return total_cards;
 }
