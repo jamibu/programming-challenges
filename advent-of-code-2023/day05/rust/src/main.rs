@@ -58,18 +58,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         .min()
         .unwrap();
 
-    let part2 = almanac
-        .seeds
-        .iter()
-        .zip(almanac.seeds.iter().skip(1))
-        .map(|(x, n)| (*x..=(*x + *n)).collect::<Vec<isize>>())
-        .flatten()
-        .map(|x| find_location(&almanac, x))
-        .min()
-        .unwrap();
+    // Part2
+    // Parse seeds into ranges
+    // Check intersection of ranges with maps
+    // Keep going through the intersections of ranges for each map
+    // Take the minimum value from the last map (location)
 
     println!("Part 1: {}", part1);
-    println!("Part 2: {}", part2);
+    // println!("Part 2: {}", part2);
 
     Ok(())
 }
