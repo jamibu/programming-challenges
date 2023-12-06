@@ -48,7 +48,7 @@ impl ConversionMap {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let almanac_string: String = fs::read_to_string("../example.txt")?.parse()?;
+    let almanac_string: String = fs::read_to_string("../puzzleInput.txt")?.parse()?;
     let almanac = read_almanac(almanac_string);
 
     let part1 = almanac
@@ -58,11 +58,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         .min()
         .unwrap();
 
-    let seed_ranges: Vec<(&isize, &isize)> = almanac
+    let part2 = almanac
         .seeds
         .iter()
         .zip(almanac.seeds.iter().skip(1))
-        .collect();
+        .map(|(x, n)| (*x..=(*x + *n)).collect::<Vec<isize>>())
+        .flatten()
+        .map(|x| find_location(&almanac, x))
+        .min()
+        .unwrap();
 
     println!("Part 1: {}", part1);
     println!("Part 2: {}", part2);
