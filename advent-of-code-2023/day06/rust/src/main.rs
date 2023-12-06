@@ -8,21 +8,14 @@ fn main() {
     let part1: i64 = (0..TIME.len()).map(|i| calc_from_roots(TIME[i], DIST[i])).product();
     println!("Part 1: {}", part1);
     let part2: i64 = calc_from_roots(TIME2, DIST2);
-    println!("Part 1: {}", part2);
+    println!("Part 2: {}", part2);
 }
 
 
 fn calc_from_roots(time: i64, dist: i64) -> i64 {
     let sq = ((time.pow(2) - 4 * dist) as f64).sqrt();
-
     let tcharge1 = (-time as f64 + sq) / (-2.0);
     let tcharge2 = (-time as f64 - sq) / (-2.0);
 
-    dbg!(time.pow(2));
-    dbg!(sq);
-    dbg!(tcharge1);
-    dbg!(tcharge2);
-    
-    // Need min to max NON inclusive (would only equal the record)
     return tcharge2.ceil() as i64 - tcharge1.floor() as i64 - 1; 
 }
