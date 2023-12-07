@@ -1,0 +1,4 @@
+(executable
+ (public_name ohcamel)
+ (name main)
+ (libraries ohcamel core base str))
