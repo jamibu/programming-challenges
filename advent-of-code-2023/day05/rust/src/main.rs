@@ -28,6 +28,8 @@ impl ConversionMap {
             .map(|x| x.split_whitespace().map(|x| x.parse().unwrap()).collect())
             .collect();
 
+        // Ranges are sorted based on the start of source range
+        // This is needed later for the range_intersects part
         raw_map.sort_by(|a, b| a[1].cmp(&b[1]));
 
         for vals in raw_map {
@@ -120,6 +122,10 @@ fn range_intersects(to_check: &Vec<(isize, isize)>, map: &ConversionMap) -> Vec<
     let mut matched: Vec<(isize, isize)> = vec![];
     let mut next: Vec<(isize, isize)> = to_check.clone();
 
+    // The source ranges must be sorted for this to work i.e. smallest source
+    // range in terms of numberical value to largest e.g. [(1..3), (3..5)]
+    // This way we can iterate over maps without having to backtrack to check
+    // if a newly split range was in one of the previous map ranges.
     for (i, source) in map.source.iter().enumerate() {
         let ranges: Vec<(isize, isize)> = next.drain(..).collect();
 
