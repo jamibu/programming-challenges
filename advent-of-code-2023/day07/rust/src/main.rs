@@ -105,12 +105,9 @@ fn rank_hand(counts: &HashMap<u32, usize>) -> (usize, usize) {
 
 fn upgrade_with_joker(mut rank: (usize, usize), num_j: usize) -> (usize, usize) {
     rank = match (rank, num_j) {
-        ((5, 0), _) => (5, 0),
-        ((4, 1), _) => (5, 0),
-        ((3, 2), _) => (5, 0),
-        ((3, 1), _) => (4, 1),
+        ((5, 0), _) | ((4, 1), _) | ((3, 2), _) => (5, 0),
+        ((3, 1), _) | ((2, 2), 2) => (4, 1),
         ((2, 2), 1) => (3, 2),
-        ((2, 2), 2) => (4, 1),
         ((2, 1), _) => (3, 1),
         ((1, 1), _) => (2, 1),
         _ => panic!("Unexpected hand"),
