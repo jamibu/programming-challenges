@@ -8,7 +8,7 @@ fn main() {
     let fname = "../puzzleInput.txt";
     let (directions, network) = read_file(fname);
 
-    let part1 = solve_part1(&directions, &network);
+    let part1 = follow_nodes(&directions, &network, "AAA", "ZZZ");
     println!("Part 1: {}", part1);
     let part2 = solve_part2(&directions, &network);
     println!("Part 2: {}", part2);
@@ -37,19 +37,24 @@ fn read_file(fname: &str) -> (Vec<char>, HashMap<String, Nodes>) {
     return (directions, network);
 }
 
-fn solve_part1(directions: &Vec<char>, network: &HashMap<String, Nodes>) -> usize {
+fn follow_nodes(
+    directions: &Vec<char>,
+    network: &HashMap<String, Nodes>,
+    start_node: &str,
+    end_str: &str,
+) -> usize {
     let mut step_idx = 0;
     let mut total_steps = 0;
-    let mut next_key = "AAA";
-    while next_key != "ZZZ" {
+    let mut node: &str = &start_node;
+    while !node.ends_with(end_str) {
         if step_idx >= directions.len() {
             step_idx = 0;
         }
 
         let dir = directions[step_idx];
-        next_key = match dir {
-            'L' => &network[next_key].0,
-            'R' => &network[next_key].1,
+        node = match dir {
+            'L' => &network[node].0,
+            'R' => &network[node].1,
             _ => panic!("Invalid direction"),
         };
 
@@ -62,26 +67,8 @@ fn solve_part1(directions: &Vec<char>, network: &HashMap<String, Nodes>) -> usiz
 
 fn solve_part2(directions: &Vec<char>, network: &HashMap<String, Nodes>) -> usize {
     let mut steps_per_start: Vec<usize> = vec![];
-    for mut node in network.keys().filter(|x| x.ends_with('A')) {
-        let mut step_idx = 0;
-        let mut total_steps = 0;
-        while !node.ends_with('Z') {
-            if step_idx >= directions.len() {
-                step_idx = 0;
-            }
-
-            let dir = directions[step_idx];
-            node = match dir {
-                'L' => &network[node].0,
-                'R' => &network[node].1,
-                _ => panic!("Invalid direction"),
-            };
-
-            step_idx += 1;
-            total_steps += 1;
-        }
-
-        steps_per_start.push(total_steps);
+    for node in network.keys().filter(|x| x.ends_with('A')) {
+        steps_per_start.push(follow_nodes(directions, network, node, "Z"));
     }
     let sum: usize = steps_per_start
         .into_iter()
